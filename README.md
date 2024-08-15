@@ -22,12 +22,13 @@ const useFetchOnScroll = require('use-fetch-on-scroll-hook').default;
 📚 Usage
 
 ```jsx
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
-import useFetchOnScroll from 'use-fetch-on-scroll-hook';
+import { useFetchOnScroll } from 'use-fetch-on-scroll-hook';
 
 
-const App = () => {
+export const Test = () => {
+
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -37,20 +38,23 @@ const App = () => {
     setIsLoading(true);
 
     try {
-      const res: AxiosResponse<any> = await axios.get('https://pokeapi.co/api/v2/pokemon', {
-        params: {
-          page: page,
+      const res: AxiosResponse<any> = await axios.get(
+        'https://pokeapi.co/api/v2/pokemon',
+        {
+          params: {
+            page: page,
+          },
         },
-        withCredentials: true,
-      });
+      );
 
       if (page > 1) {
-        setItems((prevItems) => [...prevItems, ...res.data.users]);
+        setItems((prevItems) => [...prevItems, ...res.data.results]);
       } else {
-        setItems(res.data.users);
+        setItems(res.data.results);
+        setPage(2)
       }
 
-      if (items.length + res.data.users.length >= res.data.total) {
+      if (items.length + res.data.results.length >= res.data.count) {
         setHasMore(false);
       }
     } catch (error) {
@@ -59,6 +63,10 @@ const App = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   //? you can be passing the "data" type if you want
   const { containerRef, handleScroll } = useFetchOnScroll<any>({
@@ -72,28 +80,29 @@ const App = () => {
   });
 
   return (
-     <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        style={{
-          height: '300px',
-          overflow: 'auto',
-        }}
-      >
-        <div>
-          {items &&
-            items.map((i, index) => {
-              return (
-                <div key={i.external_id}>
-                  <div>{i.name}</div>
-                </div>
-              );
-            })}
-        </div>
-          {isLoading && <p>Loading...</p>}
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      style={{
+        height: '300px',
+        overflow: 'auto',
+      }}
+    >
+      <div>
+        {items &&
+          items.map((i, index) => {
+            return (
+              <div key={i.external_id}>
+                <div>{i.name}</div>
+              </div>
+            );
+          })}
       </div>
+      {isLoading && <p>Loading...</p>}
+    </div>
   );
 };
+
 ```
 
 The useFetchOnScroll hook can be utilized in several ways:
